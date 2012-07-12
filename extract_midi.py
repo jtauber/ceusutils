@@ -14,7 +14,7 @@ def get(data, start, end=None):
 
 
 FILENAME = sys.argv[1]
-THRESHOLD = 64
+THRESHOLD = 48
 
 
 with open(FILENAME) as f:
@@ -51,9 +51,12 @@ for i in range(len(data) - 165):
 segment = data[last_start:i]
 segments.append(segment)
 
-notes = []
+notes1 = []
+notes2 = []
+notes3 = []
 start_time = {}
 peak_pressure = {}
+peak_time = {}
 for segment in segments:
     assert len(segment) > 4
     timestamp = struct.unpack(">I", "\x00" + segment[1:4])[0]
@@ -71,6 +74,7 @@ for segment in segments:
                 pressure[x] = y
                 if pressure[x] > peak_pressure.get(x, 0):
                     peak_pressure[x] = pressure[x]
+                    peak_time[x] = timestamp
     
     prev = set(start_time.keys())
     started = set(pressure.keys()) - prev
@@ -79,11 +83,17 @@ for segment in segments:
         start_time[k] = timestamp
     for k in ended:
         if k <= 108:
-            notes.append((start_time[k], k, peak_pressure[k] / 2, timestamp - start_time[k]))
+            velocity = peak_time[k] - start_time[k]
+            duration = max(0, timestamp - start_time[k])
+            if peak_pressure[k] > 160:
+                notes1.append((start_time[k], k, max(0, min(127, peak_pressure[k] / 2)), timestamp - start_time[k]))
+            notes2.append((start_time[k], k, max(0, min(127, peak_pressure[k] / 2)), timestamp - start_time[k]))
+            notes3.append((start_time[k], k, max(0, min(127, velocity)), timestamp - start_time[k]))
         del start_time[k]
         del peak_pressure[k]
+        del peak_time[k]
 
-s = midi.SMF(notes)
+s = midi.SMF([notes1, notes2, notes3])
 
 with open("test.mid", "w") as f:
     s.write(f)

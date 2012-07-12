@@ -36,12 +36,13 @@ def write_varlen(out, n):
 
 class SMF:
     
-    def __init__(self, sequence):
-        self.sequence = sequence
+    def __init__(self, tracks):
+        self.tracks = tracks
         
     def write(self, out):
         
-        Thd(format=1, num_tracks=2, division=500).write(out)
+        num_tracks = 1 + len(self.tracks)
+        Thd(format=1, num_tracks=num_tracks, division=500).write(out)
         T = 1  # how to translate events times into time_delta using the
                # division above
         
@@ -55,32 +56,32 @@ class SMF:
         t.track_end()
         t.write(out)
         
-        # second track will contain actual notes
-        t = Trk()
-        
-        # we make a list of events including note off events so we can sort by
-        # offset including them (to avoid negative time deltas)
-        
-        events_with_noteoff = []
-        for offset, note_value, velocity, duration in self.sequence:
-            if note_value is not None:
-                events_with_noteoff.append((True, offset, note_value, velocity))
-                events_with_noteoff.append((False, offset + duration, note_value, 0))
-        
-        prev_offset = None
-        for on, offset, note_value, velocity in sorted(events_with_noteoff, key=lambda x: x[1]):
-            if prev_offset is None:
-                time_delta = 0
-            else:
-                time_delta = (offset - prev_offset) * T
-            if on:
-                t.start_note(time_delta, note_value, velocity)
-            else:
-                t.end_note(time_delta, note_value)
-            prev_offset = offset
+        for track in self.tracks:
+            t = Trk()
             
-        t.track_end()
-        t.write(out)
+            # we make a list of events including note off events so we can sort by
+            # offset including them (to avoid negative time deltas)
+            
+            events_with_noteoff = []
+            for offset, note_value, velocity, duration in track:
+                if note_value is not None:
+                    events_with_noteoff.append((True, offset, note_value, velocity))
+                    events_with_noteoff.append((False, offset + duration, note_value, 0))
+            
+            prev_offset = None
+            for on, offset, note_value, velocity in sorted(events_with_noteoff, key=lambda x: x[1]):
+                if prev_offset is None:
+                    time_delta = 0
+                else:
+                    time_delta = (offset - prev_offset) * T
+                if on:
+                    t.start_note(time_delta, note_value, velocity)
+                else:
+                    t.end_note(time_delta, note_value)
+                prev_offset = offset
+                
+            t.track_end()
+            t.write(out)
 
 
 class Thd:
