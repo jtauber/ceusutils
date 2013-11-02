@@ -3,7 +3,7 @@
 import struct
 import sys
 
-import midi
+import midiwrite
 
 
 def get(data, start, end=None):
@@ -93,7 +93,7 @@ for segment in segments:
         del peak_pressure[k]
         del peak_time[k]
 
-s = midi.SMF([notes1, notes2, notes3])
+s = midiwrite.SMF([notes1, notes2, notes3])
 
 with open("test.mid", "w") as f:
     s.write(f)
