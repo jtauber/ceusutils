@@ -78,4 +78,3 @@ along with sensor `111` (with over one million occurences!)
 Presumably sensor `111` is the sustain pedal.
 
 I still haven't quite yet calibrated the resolution of the timestamp but it seems plausible the timestamps are in milliseconds.
-

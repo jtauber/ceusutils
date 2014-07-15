@@ -60,12 +60,12 @@ peak_time = {}
 for segment in segments:
     assert len(segment) > 4
     timestamp = struct.unpack(">I", "\x00" + segment[1:4])[0]
-    
+
     if timestamp % 2 != 0:  # not sure why
         continue
-    
+
     pressure = {}
-    
+
     for i in range(4, len(segment), 2):
         if i + 1 < len(segment):
             x = ord(segment[i])
@@ -75,7 +75,7 @@ for segment in segments:
                 if pressure[x] > peak_pressure.get(x, 0):
                     peak_pressure[x] = pressure[x]
                     peak_time[x] = timestamp
-    
+
     prev = set(start_time.keys())
     started = set(pressure.keys()) - prev
     ended = prev - set(pressure.keys())

@@ -59,16 +59,16 @@ start_time = {}
 for segment in segments:
     assert len(segment) > 4
     timestamp = struct.unpack(">I", "\x00" + segment[1:4])[0]
-    
+
     pressure = {}
-    
+
     for i in range(4, len(segment), 2):
         if i + 1 < len(segment):
             x = ord(segment[i])
             y = ord(segment[i + 1])
             if y > THRESHOLD:
                 pressure[x] = y
-    
+
     prev = set(start_time.keys())
     started = set(pressure.keys()) - prev
     ended = prev - set(pressure.keys())
